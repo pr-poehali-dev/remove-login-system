@@ -17,20 +17,18 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [narutoMode, setNarutoMode] = useState(false);
-  const [konohaSequence, setKonohaSequence] = useState<string[]>([]);
-
-  const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  const [konohaSequence, setKonohaSequence] = useState('');
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      const newSequence = [...konohaSequence, e.key].slice(-10);
+      const newSequence = (konohaSequence + e.key).slice(-6);
       setKonohaSequence(newSequence);
 
-      if (JSON.stringify(newSequence) === JSON.stringify(KONAMI_CODE)) {
+      if (newSequence.toUpperCase() === 'NARUTO') {
         setNarutoMode(true);
         const audio = new Audio('https://cdn.poehali.dev/intertnal/audio/naruto.mp3');
         audio.play().catch(() => {});
-        setKonohaSequence([]);
+        setKonohaSequence('');
       }
     };
 
