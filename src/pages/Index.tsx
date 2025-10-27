@@ -77,10 +77,6 @@ const Index = () => {
       <section id="mods" className="py-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h3 className="text-3xl font-heading font-bold mb-6 text-foreground">
-              Русификаторы скоро появятся
-            </h3>
-            
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -91,16 +87,17 @@ const Index = () => {
                   className="pl-10"
                 />
               </div>
+              <Tabs value={selectedGame} onValueChange={setSelectedGame} className="w-auto">
+                <TabsList className="grid grid-cols-3">
+                  <TabsTrigger value="all">Все</TabsTrigger>
+                  <TabsTrigger value="skyrim">TES V SKYRIM</TabsTrigger>
+                  <TabsTrigger value="witcher">The Witcher Wild Hunt</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
-            <Tabs value={selectedGame} onValueChange={setSelectedGame} className="w-full">
-              <TabsList className="grid w-full md:w-auto grid-cols-3 mb-6">
-                <TabsTrigger value="all">Все</TabsTrigger>
-                <TabsTrigger value="skyrim">TES V SKYRIM</TabsTrigger>
-                <TabsTrigger value="witcher">The Witcher Wild Hunt</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={selectedGame} className="mt-0">
+            <div>
+              {filteredMods.length === 0 ? (
                 {filteredMods.length === 0 ? (
                   <div className="text-center py-12">
                     <Icon name="FolderOpen" size={48} className="mx-auto mb-4 text-muted-foreground" />
@@ -141,8 +138,7 @@ const Index = () => {
                     ))}
                   </div>
                 )}
-              </TabsContent>
-            </Tabs>
+            </div>
           </div>
         </div>
       </section>
