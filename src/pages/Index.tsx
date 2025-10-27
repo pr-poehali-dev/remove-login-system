@@ -26,8 +26,11 @@ const Index = () => {
 
       if (newSequence.toUpperCase() === 'NARUTO') {
         setNarutoMode(true);
-        const audio = new Audio('https://www.myinstants.com/media/sounds/dattebayo.mp3');
-        audio.play().catch(() => {});
+        const utterance = new SpeechSynthesisUtterance('Dattebayo!');
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.2;
+        utterance.pitch = 1.5;
+        window.speechSynthesis.speak(utterance);
         setKonohaSequence('');
       }
     };
@@ -48,7 +51,7 @@ const Index = () => {
       {narutoMode && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           <div className="naruto-ramen"></div>
-          <div className="naruto-character">🍥</div>
+          <div className="naruto-character"></div>
         </div>
       )}
       

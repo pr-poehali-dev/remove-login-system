@@ -49,34 +49,39 @@
 }
 
 /* Naruto Mode Styles */
-@keyframes fallRamen {
-  0% {
-    transform: translateY(-100vh) rotate(0deg);
-    opacity: 1;
-  }
+@keyframes floatRamen {
+  0%,
   100% {
-    transform: translateY(100vh) rotate(360deg);
-    opacity: 0;
+    transform: translateY(0px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(5deg);
   }
 }
 
-@keyframes narutoFloat {
+@keyframes narutoHandSign {
   0%,
   100% {
-    transform: translateY(0px);
+    transform: scale(1) rotate(-2deg);
+  }
+  25% {
+    transform: scale(1.05) rotate(2deg);
   }
   50% {
-    transform: translateY(-20px);
+    transform: scale(1.1) rotate(-1deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(1deg);
   }
 }
 
 .naruto-mode {
   background: linear-gradient(
     135deg,
-    #cc4400 0%,
-    #dd5500 25%,
-    #ee6600 50%,
-    #ff7700 75%,
+    #994400 0%,
+    #bb5500 25%,
+    #dd6600 50%,
+    #ee7700 75%,
     #ff8800 100%
   ) !important;
 }
@@ -85,22 +90,28 @@
 .naruto-ramen::after {
   content: "🍜";
   position: absolute;
-  font-size: 3rem;
-  animation: fallRamen 6s infinite;
-  left: 15%;
-  filter: drop-shadow(0 0 10px rgba(255, 120, 0, 0.5));
+  font-size: 4rem;
+  animation: floatRamen 5s infinite ease-in-out;
+  top: 15%;
+  left: 10%;
+  filter: drop-shadow(0 0 15px rgba(255, 136, 0, 0.7));
 }
 
 .naruto-ramen::after {
-  left: 75%;
-  animation-delay: 3s;
+  left: 80%;
+  top: 65%;
+  animation-delay: 2.5s;
 }
 
 .naruto-character {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 120px;
-  animation: narutoFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 20px rgba(255, 120, 0, 0.8));
+  bottom: 30px;
+  right: 30px;
+  font-size: 150px;
+  animation: narutoHandSign 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px rgba(255, 136, 0, 0.9));
+}
+
+.naruto-character::before {
+  content: "🙏";
 }
