@@ -47,3 +47,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Naruto Mode Styles */
+@keyframes fallLeaf {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes sharingan {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+}
+
+.naruto-mode {
+  background: linear-gradient(
+    135deg,
+    #ff6b00 0%,
+    #ff4500 50%,
+    #cc0000 100%
+  ) !important;
+}
+
+.naruto-leaves::before,
+.naruto-leaves::after {
+  content: "🍂";
+  position: absolute;
+  font-size: 2rem;
+  animation: fallLeaf 5s infinite;
+  left: 10%;
+}
+
+.naruto-leaves::after {
+  left: 70%;
+  animation-delay: 2s;
+}
+
+.sharingan-eye {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #ff0000 0%, #cc0000 40%, transparent 60%);
+  border-radius: 50%;
+  animation: sharingan 3s infinite;
+  opacity: 0.3;
+  pointer-events: none;
+}

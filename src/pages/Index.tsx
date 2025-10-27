@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,27 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [narutoMode, setNarutoMode] = useState(false);
+  const [konohaSequence, setKonohaSequence] = useState<string[]>([]);
+
+  const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const newSequence = [...konohaSequence, e.key].slice(-10);
+      setKonohaSequence(newSequence);
+
+      if (JSON.stringify(newSequence) === JSON.stringify(KONAMI_CODE)) {
+        setNarutoMode(true);
+        const audio = new Audio('https://cdn.poehali.dev/intertnal/audio/naruto.mp3');
+        audio.play().catch(() => {});
+        setKonohaSequence([]);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [konohaSequence]);
 
   const filteredMods = modsList.filter(mod => {
     const matchesSearch = mod.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -25,7 +46,14 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${narutoMode ? 'naruto-mode' : ''}`}>
+      {narutoMode && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          <div className="naruto-leaves"></div>
+          <div className="sharingan-eye"></div>
+        </div>
+      )}
+      
       <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -34,7 +62,9 @@ const Index = () => {
                 <Icon name="Gamepad2" size={24} className="text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-2xl font-heading font-bold text-foreground">ruprojectgames</h1>
+                <h1 className="text-2xl font-heading font-bold text-foreground">
+                  {narutoMode ? '🍥 Konoha Project Games 🍥' : 'ruprojectgames'}
+                </h1>
               </div>
             </div>
             <nav className="hidden md:flex items-center gap-6">
