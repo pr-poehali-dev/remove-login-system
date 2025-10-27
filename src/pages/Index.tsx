@@ -118,11 +118,11 @@ const Index = () => {
             База переводов для модов TES V SKYRIM и The Witcher Wild Hunt
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" className="gap-2 bg-primary hover:bg-primary/90">
+            <Button size="lg" className="gap-2" onClick={() => document.getElementById('mods')?.scrollIntoView({ behavior: 'smooth' })}>
               <Icon name="Download" size={20} />
               Скачать русификатор
             </Button>
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => document.getElementById('instructions')?.scrollIntoView({ behavior: 'smooth' })}>
               <Icon name="BookOpen" size={20} />
               Инструкции
             </Button>
@@ -191,11 +191,7 @@ const Index = () => {
                         <CardContent>
                           <p className="text-muted-foreground mb-4">{mod.description}</p>
                           <div className="flex gap-2">
-                            <Button className="flex-1 gap-2">
-                              <Icon name="Download" size={16} />
-                              Скачать русификатор
-                            </Button>
-                            <Button variant="outline" className="gap-2">
+                            <Button className="flex-1 gap-2" onClick={() => document.getElementById('instructions')?.scrollIntoView({ behavior: 'smooth' })}>
                               <Icon name="BookOpen" size={16} />
                               Инструкция
                             </Button>
