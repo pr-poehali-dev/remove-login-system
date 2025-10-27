@@ -7,65 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Icon from '@/components/ui/icon';
 
-const modsList = [
-  {
-    id: 1,
-    title: 'Immersive Armors - Полная русификация',
-    author: 'DarkRider',
-    game: 'skyrim',
-    downloads: 15420,
-    date: '2025-10-15',
-    description: 'Полный перевод мода Immersive Armors с локализацией всех названий, описаний и диалогов.',
-  },
-  {
-    id: 2,
-    title: 'SkyUI - Русский интерфейс',
-    author: 'ModTeam',
-    game: 'skyrim',
-    downloads: 32100,
-    date: '2025-10-20',
-    description: 'Русификация популярного мода SkyUI для улучшения интерфейса игры.',
-  },
-  {
-    id: 3,
-    title: 'Hearts of Stone - Перевод',
-    author: 'WitcherRU',
-    game: 'witcher',
-    downloads: 8750,
-    date: '2025-10-10',
-    description: 'Качественный перевод дополнения Hearts of Stone с адаптацией под русскую локализацию.',
-  },
-  {
-    id: 4,
-    title: 'Blood and Wine - Русификация',
-    author: 'WitcherRU',
-    game: 'witcher',
-    downloads: 12300,
-    date: '2025-09-28',
-    description: 'Полная русификация DLC Blood and Wine с переводом всех квестов и диалогов.',
-  },
-];
+const modsList: any[] = [];
 
-const newsList = [
-  {
-    id: 1,
-    title: 'Обновление русификатора SkyUI до версии 5.2',
-    date: '2025-10-25',
-    excerpt: 'Вышла новая версия перевода с улучшенной локализацией новых функций.',
-  },
-  {
-    id: 2,
-    title: 'Завершена работа над переводом Legacy of the Dragonborn',
-    date: '2025-10-22',
-    excerpt: 'Команда переводчиков завершила полную локализацию мода. Доступно для скачивания.',
-  },
-  {
-    id: 3,
-    title: 'Начат проект по переводу Enderal',
-    date: '2025-10-18',
-    excerpt: 'Объявляем старт работы над русификацией глобального мода Enderal: The Shards of Order.',
-  },
-];
+const newsList: any[] = [];
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -169,14 +113,10 @@ const Index = () => {
                     {filteredMods.map((mod) => (
                       <Card key={mod.id} className="hover:shadow-lg transition-shadow hover:border-primary/50">
                         <CardHeader>
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="mb-2">
                             <Badge variant={mod.game === 'skyrim' ? 'default' : 'secondary'}>
                               {mod.game === 'skyrim' ? 'TES V SKYRIM' : 'The Witcher Wild Hunt'}
                             </Badge>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Icon name="Download" size={16} />
-                              <span>{mod.downloads.toLocaleString()}</span>
-                            </div>
                           </div>
                           <CardTitle className="text-xl">{mod.title}</CardTitle>
                           <CardDescription>
