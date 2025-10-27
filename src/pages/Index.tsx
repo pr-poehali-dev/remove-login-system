@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 
 const modsList: any[] = [];
@@ -14,6 +15,7 @@ const newsList: any[] = [];
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState('all');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const filteredMods = modsList.filter(mod => {
     const matchesSearch = mod.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -127,7 +129,11 @@ const Index = () => {
                         <CardContent>
                           <p className="text-muted-foreground mb-4">{mod.description}</p>
                           <div className="flex gap-2">
-                            <Button className="flex-1 gap-2" onClick={() => document.getElementById('instructions')?.scrollIntoView({ behavior: 'smooth' })}>
+                            <Button className="flex-1 gap-2" onClick={() => setShowAuthDialog(true)}>
+                              <Icon name="Download" size={16} />
+                              Скачать
+                            </Button>
+                            <Button variant="outline" className="gap-2" onClick={() => document.getElementById('instructions')?.scrollIntoView({ behavior: 'smooth' })}>
                               <Icon name="BookOpen" size={16} />
                               Инструкция
                             </Button>
@@ -271,6 +277,28 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Lock" size={24} className="text-primary" />
+              Требуется регистрация
+            </DialogTitle>
+            <DialogDescription className="text-base pt-2">
+              Для доступа к скачиванию файлов, необходимо зарегистрироваться на сайте
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button className="flex-1" onClick={() => setShowAuthDialog(false)}>
+              Зарегистрироваться
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={() => setShowAuthDialog(false)}>
+              Войти
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
