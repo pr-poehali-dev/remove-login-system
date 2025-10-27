@@ -98,7 +98,6 @@ const Index = () => {
 
             <div>
               {filteredMods.length === 0 ? (
-                {filteredMods.length === 0 ? (
                   <div className="text-center py-12">
                     <Icon name="FolderOpen" size={48} className="mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground text-lg">
