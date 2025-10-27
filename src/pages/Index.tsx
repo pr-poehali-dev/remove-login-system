@@ -26,7 +26,7 @@ const Index = () => {
 
       if (newSequence.toUpperCase() === 'NARUTO') {
         setNarutoMode(true);
-        const audio = new Audio('https://cdn.poehali.dev/intertnal/audio/naruto.mp3');
+        const audio = new Audio('https://www.myinstants.com/media/sounds/dattebayo.mp3');
         audio.play().catch(() => {});
         setKonohaSequence('');
       }
@@ -47,8 +47,8 @@ const Index = () => {
     <div className={`min-h-screen bg-background ${narutoMode ? 'naruto-mode' : ''}`}>
       {narutoMode && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          <div className="naruto-leaves"></div>
-          <div className="sharingan-eye"></div>
+          <div className="naruto-ramen"></div>
+          <div className="naruto-character">🍥</div>
         </div>
       )}
       

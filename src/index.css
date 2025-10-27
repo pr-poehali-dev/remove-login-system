@@ -49,7 +49,7 @@
 }
 
 /* Naruto Mode Styles */
-@keyframes fallLeaf {
+@keyframes fallRamen {
   0% {
     transform: translateY(-100vh) rotate(0deg);
     opacity: 1;
@@ -60,80 +60,47 @@
   }
 }
 
-@keyframes sharingan {
+@keyframes narutoFloat {
   0%,
   100% {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
-@keyframes sharinganPulse {
-  0%,
-  100% {
-    opacity: 0.2;
+    transform: translateY(0px);
   }
   50% {
-    opacity: 0.4;
+    transform: translateY(-20px);
   }
 }
 
 .naruto-mode {
   background: linear-gradient(
     135deg,
-    #4a0000 0%,
-    #8b0000 25%,
-    #b22222 50%,
-    #dc143c 75%,
-    #ff4500 100%
+    #cc4400 0%,
+    #dd5500 25%,
+    #ee6600 50%,
+    #ff7700 75%,
+    #ff8800 100%
   ) !important;
 }
 
-.naruto-leaves::before,
-.naruto-leaves::after {
-  content: "🍂";
+.naruto-ramen::before,
+.naruto-ramen::after {
+  content: "🍜";
   position: absolute;
-  font-size: 2rem;
-  animation: fallLeaf 5s infinite;
-  left: 10%;
+  font-size: 3rem;
+  animation: fallRamen 6s infinite;
+  left: 15%;
+  filter: drop-shadow(0 0 10px rgba(255, 120, 0, 0.5));
 }
 
-.naruto-leaves::after {
-  left: 70%;
-  animation-delay: 2s;
+.naruto-ramen::after {
+  left: 75%;
+  animation-delay: 3s;
 }
 
-.sharingan-eye {
+.naruto-character {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  pointer-events: none;
-  animation: sharinganPulse 2s infinite;
-}
-
-.sharingan-eye::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, #ff0000 0%, #cc0000 30%, transparent 50%);
-  border-radius: 50%;
-  animation: sharingan 4s linear infinite;
-}
-
-.sharingan-eye::after {
-  content: "⚫";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 80px;
-  color: #000;
+  bottom: 20px;
+  right: 20px;
+  font-size: 120px;
+  animation: narutoFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 120, 0, 0.8));
 }
