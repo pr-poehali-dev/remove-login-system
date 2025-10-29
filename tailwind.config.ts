@@ -107,7 +107,7 @@ html, body {
 }
 
 body {
-  @apply bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white;
+  apply bg-gradient-to-b from-[0f172a] to-[1e293b] text-white;
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;
