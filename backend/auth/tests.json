@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Register new user",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "test@example.com",
+        "password": "testpass123"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "user": {
+          "id": "number",
+          "email": "string",
+          "created_at": "string"
+        },
+        "token": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject duplicate email",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "test@example.com",
+        "password": "anotherpass"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject matching email and password",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "same@example.com",
+        "password": "same@example.com"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Email and password must be different"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

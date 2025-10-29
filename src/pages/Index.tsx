@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import AuthDialog from '@/components/AuthDialog';
+import DonationDialog from '@/components/DonationDialog';
+import { authService, type User } from '@/lib/auth';
 
 const modsList: any[] = [];
 
@@ -16,8 +18,15 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showDonationDialog, setShowDonationDialog] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [hasDonated, setHasDonated] = useState(false);
   const [narutoMode, setNarutoMode] = useState(false);
   const [konohaSequence, setKonohaSequence] = useState('');
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -38,6 +47,49 @@ const Index = () => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [konohaSequence]);
+
+  const checkAuth = async () => {
+    const user = await authService.getCurrentUser();
+    setCurrentUser(user);
+    if (user) {
+      checkDonationStatus();
+    }
+  };
+
+  const checkDonationStatus = async () => {
+    try {
+      const status = await authService.getDonationStatus();
+      setHasDonated(status.has_donated);
+    } catch (error) {
+      console.error('Failed to check donation status:', error);
+    }
+  };
+
+  const handleDownloadClick = () => {
+    if (!currentUser) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (!hasDonated) {
+      setShowDonationDialog(true);
+      return;
+    }
+    alert('Скачивание началось!');
+  };
+
+  const handleAuthSuccess = () => {
+    checkAuth();
+  };
+
+  const handleDonationSuccess = () => {
+    checkDonationStatus();
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    setHasDonated(false);
+  };
 
   const filteredMods = modsList.filter(mod => {
     const matchesSearch = mod.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -68,19 +120,40 @@ const Index = () => {
                 </h1>
               </div>
             </div>
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
-                Главная
-              </a>
-              <a href="#mods" className="text-foreground hover:text-primary transition-colors font-medium">
-                Русификаторы
-              </a>
-              <a href="#instructions" className="text-foreground hover:text-primary transition-colors font-medium">
-                Инструкции
-              </a>
-              <a href="#news" className="text-foreground hover:text-primary transition-colors font-medium">
-                Новости
-              </a>
+            <nav className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-6">
+                <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Главная
+                </a>
+                <a href="#mods" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Русификаторы
+                </a>
+                <a href="#instructions" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Инструкции
+                </a>
+                <a href="#news" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Новости
+                </a>
+              </div>
+              {currentUser ? (
+                <div className="flex items-center gap-3">
+                  {hasDonated && (
+                    <Badge variant="default" className="gap-1">
+                      <Icon name="Heart" size={14} />
+                      Донатер
+                    </Badge>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={handleLogout}>
+                    <Icon name="LogOut" size={16} />
+                    Выход
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" onClick={() => setShowAuthDialog(true)}>
+                  <Icon name="LogIn" size={16} />
+                  Войти
+                </Button>
+              )}
             </nav>
           </div>
         </div>
@@ -95,7 +168,7 @@ const Index = () => {
             База переводов для модов TES V SKYRIM и The Witcher Wild Hunt
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" className="gap-2" onClick={() => document.getElementById('mods')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button size="lg" className="gap-2" onClick={handleDownloadClick}>
               <Icon name="Download" size={20} />
               Скачать русификатор
             </Button>
@@ -103,6 +176,12 @@ const Index = () => {
               <Icon name="BookOpen" size={20} />
               Инструкции
             </Button>
+            {currentUser && !hasDonated && (
+              <Button size="lg" variant="default" className="gap-2 bg-red-500 hover:bg-red-600" onClick={() => setShowDonationDialog(true)}>
+                <Icon name="Heart" size={20} />
+                Поддержать проект
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -309,27 +388,17 @@ const Index = () => {
         </div>
       </footer>
 
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Icon name="Lock" size={24} className="text-primary" />
-              Требуется регистрация
-            </DialogTitle>
-            <DialogDescription className="text-base pt-2">
-              Для доступа к скачиванию файлов, необходимо зарегистрироваться на сайте
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-3 mt-4">
-            <Button className="flex-1" onClick={() => setShowAuthDialog(false)}>
-              Зарегистрироваться
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={() => setShowAuthDialog(false)}>
-              Войти
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AuthDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        onSuccess={handleAuthSuccess}
+      />
+      
+      <DonationDialog
+        open={showDonationDialog}
+        onOpenChange={setShowDonationDialog}
+        onSuccess={handleDonationSuccess}
+      />
     </div>
   );
 };

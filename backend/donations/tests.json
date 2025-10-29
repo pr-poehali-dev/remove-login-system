@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Create donation requires auth",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "amount": 100
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject invalid amount",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token"
+      },
+      "body": {
+        "amount": -50
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Invalid amount"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
