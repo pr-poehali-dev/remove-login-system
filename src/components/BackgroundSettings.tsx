@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import Icon from "@/components/ui/icon";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface BackgroundSettingsProps {
   open: boolean;
@@ -18,83 +18,81 @@ interface BackgroundSettingsProps {
 
 const PRESET_BACKGROUNDS = [
   {
-    name: "Темный градиент",
+    name: "Тёмный градиент",
     value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    description: "Самый сложен",
   },
   {
     name: "Синий океан",
     value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)",
+    description: "Отменный",
   },
   {
     name: "Закат",
     value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)",
+    description: "Закат",
+  },
+  {
+    name: "Лес",
+    value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)",
+    description: "Лес",
   },
   {
     name: "Огненный",
     value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)",
+    description: "Ответный",
   },
-  { name: "Лес", value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)" },
   {
     name: "Ночное небо",
     value: "linear-gradient(135deg, #000428 0%, #004e92 100%)",
+    description: "Ночное небо",
   },
 ];
 
-// Функция для применения фона к правильному элементу
-const applyBackgroundToCorrectElement = (background: string) => {
-  // Попробуем разные возможные контейнеры для фона
-  const possibleContainers = [
-    "body",
-    "main",
-    ".app",
-    "#root",
-    "#__next",
-    ".layout",
-    ".main-container",
+// Функция для применения фона
+const applyBackground = (background: string) => {
+  console.log("Применение фона:", background);
+
+  // Попробуем разные элементы
+  const elements = [
+    document.body,
+    document.querySelector("main"),
+    document.querySelector("#root"),
+    document.querySelector(".app"),
+    document.querySelector(".layout"),
   ];
 
-  let applied = false;
-
-  possibleContainers.forEach((selector) => {
-    try {
-      const element = document.querySelector(selector);
-      if (element) {
-        (element as HTMLElement).style.background = background;
-        applied = true;
-        console.log(`Фон применен к элементу: ${selector}`);
+  elements.forEach((element) => {
+    if (element && element instanceof HTMLElement) {
+      if (background.includes("url(")) {
+        element.style.background = background;
+        element.style.backgroundSize = "cover";
+        element.style.backgroundPosition = "center";
+        element.style.backgroundAttachment = "fixed";
+      } else {
+        element.style.background = background;
       }
-    } catch (error) {
-      console.warn(`Не удалось применить фон к ${selector}:`, error);
+      console.log("Фон применен к:", element);
     }
   });
-
-  // Если не нашли подходящий контейнер, применяем к body
-  if (!applied) {
-    document.body.style.background = background;
-    console.log("Фон применен к body");
-  }
 };
 
 // Функция для сброса фона
-const resetBackgroundFromElements = () => {
-  const possibleContainers = [
-    "body",
-    "main",
-    ".app",
-    "#root",
-    "#__next",
-    ".layout",
-    ".main-container",
+const resetBackground = () => {
+  const elements = [
+    document.body,
+    document.querySelector("main"),
+    document.querySelector("#root"),
+    document.querySelector(".app"),
+    document.querySelector(".layout"),
   ];
 
-  possibleContainers.forEach((selector) => {
-    try {
-      const element = document.querySelector(selector);
-      if (element) {
-        (element as HTMLElement).style.background = "";
-      }
-    } catch (error) {
-      console.warn(`Не удалось сбросить фон с ${selector}:`, error);
+  elements.forEach((element) => {
+    if (element && element instanceof HTMLElement) {
+      element.style.background = "";
+      element.style.backgroundSize = "";
+      element.style.backgroundPosition = "";
+      element.style.backgroundAttachment = "";
     }
   });
 };
@@ -103,72 +101,74 @@ export default function BackgroundSettings({
   open,
   onOpenChange,
 }: BackgroundSettingsProps) {
-  const [customBackground, setCustomBackground] = useState("");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [customGradient, setCustomGradient] = useState(
+    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // Загрузка сохраненных настроек при открытии
   useEffect(() => {
-    const saved = localStorage.getItem("custom_background");
-    if (saved) {
-      setCustomBackground(saved);
-      applyBackgroundToCorrectElement(saved);
-    }
+    if (open) {
+      const savedBackground = localStorage.getItem("app_background");
+      const savedImage = localStorage.getItem("app_background_image");
 
-    const savedImage = localStorage.getItem("background_image");
-    if (savedImage) {
-      setUploadedImage(savedImage);
-      applyBackgroundToCorrectElement(`url(${savedImage}) center/cover fixed`);
+      if (savedBackground) {
+        applyBackground(savedBackground);
+      } else if (savedImage) {
+        applyBackground(`url(${savedImage})`);
+      }
     }
   }, [open]);
 
-  const applyPreset = (value: string) => {
-    localStorage.setItem("custom_background", value);
-    localStorage.removeItem("background_image");
-    applyBackgroundToCorrectElement(value);
-    setCustomBackground(value);
-    setUploadedImage(null);
+  const applyPresetBackground = (background: string, name: string) => {
+    console.log("Выбран пресет:", name, background);
+    localStorage.setItem("app_background", background);
+    localStorage.removeItem("app_background_image");
+    applyBackground(background);
   };
 
-  const applyCustom = () => {
-    if (customBackground.trim()) {
-      localStorage.setItem("custom_background", customBackground);
-      localStorage.removeItem("background_image");
-      applyBackgroundToCorrectElement(customBackground);
-      setUploadedImage(null);
+  const applyCustomGradient = () => {
+    if (customGradient.trim()) {
+      console.log("Применение кастомного градиента:", customGradient);
+      localStorage.setItem("app_background", customGradient);
+      localStorage.removeItem("app_background_image");
+      applyBackground(customGradient);
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
+      console.log("Файл выбран:", file.name);
+
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        if (result) {
-          localStorage.setItem("background_image", result);
-          localStorage.removeItem("custom_background");
-          applyBackgroundToCorrectElement(`url(${result}) center/cover fixed`);
-          setUploadedImage(result);
-          setCustomBackground("");
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        if (imageUrl) {
+          localStorage.setItem("app_background_image", imageUrl);
+          localStorage.removeItem("app_background");
+          applyBackground(`url(${imageUrl}) center/cover fixed`);
+          console.log("Изображение применено");
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const resetBackground = () => {
-    localStorage.removeItem("custom_background");
-    localStorage.removeItem("background_image");
-    resetBackgroundFromElements();
-    setCustomBackground("");
-    setUploadedImage(null);
+  const resetAllBackgrounds = () => {
+    localStorage.removeItem("app_background");
+    localStorage.removeItem("app_background_image");
+    resetBackground();
+    setSelectedFile(null);
+    console.log("Все фоны сброшены");
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icon name="Palette" size={24} />
+          <DialogTitle className="text-2xl font-bold">
             Настройки фона
           </DialogTitle>
           <DialogDescription>
@@ -177,70 +177,72 @@ export default function BackgroundSettings({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 py-4">
           {/* Готовые фоны */}
           <div>
-            <Label className="text-base font-semibold">Готовые фоны</Label>
-            <div className="grid grid-cols-2 gap-3 mt-3">
+            <h3 className="text-lg font-semibold mb-3">Готовые фоны</h3>
+            <div className="grid grid-cols-2 gap-3">
               {PRESET_BACKGROUNDS.map((bg, index) => (
-                <Button
+                <Card
                   key={index}
-                  variant="outline"
-                  className="h-16 relative overflow-hidden"
-                  onClick={() => applyPreset(bg.value)}
+                  className="cursor-pointer border-2 hover:border-blue-500 transition-colors"
+                  onClick={() => applyPresetBackground(bg.value, bg.name)}
                 >
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: bg.value }}
-                  />
-                  <span className="relative z-10 text-white font-medium drop-shadow-md">
-                    {bg.name}
-                  </span>
-                </Button>
+                  <CardContent className="p-3">
+                    <div
+                      className="w-full h-20 rounded-md mb-2"
+                      style={{ background: bg.value }}
+                    />
+                    <div>
+                      <p className="font-medium">{bg.name}</p>
+                      <p className="text-sm text-gray-600">{bg.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
 
-          {/* Пользовательский градиент */}
+          {/* Свой градиент */}
           <div>
-            <Label
-              htmlFor="custom-gradient"
-              className="text-base font-semibold"
-            >
-              Свой градиент
-            </Label>
-            <div className="flex gap-2 mt-2">
-              <Input
-                id="custom-gradient"
-                placeholder="linear-gradient(135deg, #color1 0%, #color2 100%)"
-                value={customBackground}
-                onChange={(e) => setCustomBackground(e.target.value)}
-                className="flex-1"
+            <h3 className="text-lg font-semibold mb-3">Свой градиент</h3>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  value={customGradient}
+                  onChange={(e) => setCustomGradient(e.target.value)}
+                  placeholder="linear-gradient(135deg, #color1 0%, #color2 100%)"
+                  className="flex-1"
+                />
+                <Button onClick={applyCustomGradient}>Применить</Button>
+              </div>
+              <div
+                className="w-full h-20 rounded-md border"
+                style={{ background: customGradient }}
               />
-              <Button onClick={applyCustom}>Применить</Button>
             </div>
           </div>
 
           {/* Загрузка изображения */}
           <div>
-            <Label className="text-base font-semibold">
+            <h3 className="text-lg font-semibold mb-3">
               Загрузить изображение
-            </Label>
-            <div className="mt-2">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="mb-2"
-              />
+            </h3>
+            <div className="space-y-3">
+              <Input type="file" accept="image/*" onChange={handleFileUpload} />
+              {selectedFile && (
+                <p className="text-sm text-green-600">
+                  Выбран файл: {selectedFile.name}
+                </p>
+              )}
+              <Button
+                variant="outline"
+                onClick={resetAllBackgrounds}
+                className="w-full"
+              >
+                Сбросить фон
+              </Button>
             </div>
-          </div>
-
-          {/* Сброс */}
-          <div className="flex justify-end pt-4 border-t">
-            <Button variant="outline" onClick={resetBackground}>
-              Сбросить фон
-            </Button>
           </div>
         </div>
       </DialogContent>
