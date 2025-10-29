@@ -1,7 +1,7 @@
 """
-Business: User registration and authentication endpoint
-Args: event with httpMethod, body (email, password); context with request_id
-Returns: HTTP response with user data or error
+Business: Account management - password reset and account deletion
+Args: event with httpMethod, body (email, code, password, token); context with request_id
+Returns: HTTP response with operation status
 """
 import json
 import hashlib
@@ -21,11 +21,7 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-def generate_token() -> str:
-    return secrets.token_urlsafe(32)
-
-
-def generate_verification_code() -> str:
+def generate_reset_code() -> str:
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
 
@@ -60,19 +56,21 @@ def send_email(email: str, subject: str, text_content: str, html_content: str) -
         return False
 
 
-def send_verification_email(email: str, code: str) -> bool:
-    text = f'Ваш код подтверждения: {code}\n\nКод действителен 10 минут.'
+def send_password_reset_email(email: str, code: str) -> bool:
+    text = f'Ваш код для восстановления пароля: {code}\n\nКод действителен 15 минут.\n\nЕсли вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.'
     html = f'''
     <html>
       <body style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2 style="color: #333;">Подтверждение регистрации</h2>
-        <p>Ваш код подтверждения:</p>
-        <h1 style="color: #4CAF50; font-size: 36px; letter-spacing: 5px;">{code}</h1>
-        <p style="color: #666;">Код действителен 10 минут.</p>
+        <h2 style="color: #333;">Восстановление пароля</h2>
+        <p>Вы запросили восстановление пароля для вашего аккаунта на ruprojectgames.ru</p>
+        <p>Ваш код для восстановления:</p>
+        <h1 style="color: #FF5722; font-size: 36px; letter-spacing: 5px;">{code}</h1>
+        <p style="color: #666;">Код действителен 15 минут.</p>
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо. Ваш пароль останется неизменным.</p>
       </body>
     </html>
     '''
-    return send_email(email, 'Код подтверждения регистрации', text, html)
+    return send_email(email, 'Восстановление пароля', text, html)
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -83,7 +81,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
                 'Access-Control-Max-Age': '86400'
             },
@@ -106,89 +104,62 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body_data = json.loads(event.get('body', '{}'))
         action = body_data.get('action')
         
-        if action == 'register':
+        if action == 'request_reset':
             email = body_data.get('email', '').strip()
-            password = body_data.get('password', '').strip()
             
-            if not email or not password:
+            if not email:
                 cursor.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Email and password are required'})
+                    'body': json.dumps({'error': 'Email is required'})
                 }
-            
-            if len(password) < 6:
-                cursor.close()
-                conn.close()
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Password must be at least 6 characters'})
-                }
-            
-            if email.lower() == password.lower():
-                cursor.close()
-                conn.close()
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Email and password must be different'})
-                }
-            
-            cursor.execute("SELECT id FROM t_p68014762_remove_login_system.users WHERE email = %s", (email,))
-            existing_user = cursor.fetchone()
-            
-            if existing_user:
-                cursor.close()
-                conn.close()
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'User with this email already exists'})
-                }
-            
-            verification_code = generate_verification_code()
-            code_expires = datetime.now() + timedelta(minutes=10)
-            password_hash = hash_password(password)
-            unsubscribe_token = secrets.token_urlsafe(48)
             
             cursor.execute(
-                """INSERT INTO t_p68014762_remove_login_system.users 
-                   (email, password_hash, email_verified, verification_code, verification_code_expires, subscribed_to_updates, unsubscribe_token) 
-                   VALUES (%s, %s, FALSE, %s, %s, TRUE, %s) RETURNING id, email, created_at""",
-                (email, password_hash, verification_code, code_expires, unsubscribe_token)
+                "SELECT id FROM t_p68014762_remove_login_system.users WHERE email = %s",
+                (email,)
             )
             user = cursor.fetchone()
+            
+            if not user:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'message': 'If email exists, reset code has been sent'})
+                }
+            
+            reset_code = generate_reset_code()
+            reset_expires = datetime.now() + timedelta(minutes=15)
+            
+            cursor.execute(
+                """UPDATE t_p68014762_remove_login_system.users 
+                   SET reset_token = %s, reset_token_expires = %s 
+                   WHERE email = %s""",
+                (reset_code, reset_expires, email)
+            )
             conn.commit()
             
-            email_sent = send_verification_email(email, verification_code)
+            email_sent = send_password_reset_email(email, reset_code)
             
             cursor.close()
             conn.close()
             
             return {
-                'statusCode': 201,
+                'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
                 'body': json.dumps({
-                    'user': {
-                        'id': user['id'],
-                        'email': user['email'],
-                        'created_at': user['created_at'].isoformat(),
-                        'email_verified': False
-                    },
-                    'message': 'Registration successful. Check your email for verification code.' if email_sent else 'Registration successful.',
+                    'message': 'Reset code has been sent to your email',
                     'email_sent': email_sent
                 })
             }
         
-        elif action == 'verify_email':
+        elif action == 'verify_reset_code':
             email = body_data.get('email', '').strip()
             code = body_data.get('code', '').strip()
             
@@ -203,8 +174,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             cursor.execute(
-                """SELECT id, email, verification_code, verification_code_expires, email_verified 
-                   FROM t_p68014762_remove_login_system.users WHERE email = %s""",
+                """SELECT id, reset_token, reset_token_expires 
+                   FROM t_p68014762_remove_login_system.users 
+                   WHERE email = %s""",
                 (email,)
             )
             user = cursor.fetchone()
@@ -219,49 +191,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'User not found'})
                 }
             
-            if user['email_verified']:
+            if not user['reset_token'] or not user['reset_token_expires']:
                 cursor.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Email already verified'})
+                    'body': json.dumps({'error': 'No reset code requested'})
                 }
             
-            if user['verification_code_expires'] < datetime.now():
+            if datetime.now() > user['reset_token_expires']:
                 cursor.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Verification code expired'})
+                    'body': json.dumps({'error': 'Reset code expired'})
                 }
             
-            if user['verification_code'] != code:
+            if user['reset_token'] != code:
                 cursor.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Invalid verification code'})
+                    'body': json.dumps({'error': 'Invalid reset code'})
                 }
-            
-            cursor.execute(
-                "UPDATE t_p68014762_remove_login_system.users SET email_verified = TRUE, verification_code = NULL WHERE id = %s",
-                (user['id'],)
-            )
-            conn.commit()
-            
-            token = generate_token()
-            expires_at = datetime.now() + timedelta(days=30)
-            cursor.execute(
-                "INSERT INTO sessions (user_id, token, expires_at) VALUES (%s, %s, %s)",
-                (user['id'], token, expires_at)
-            )
-            conn.commit()
             
             cursor.close()
             conn.close()
@@ -270,35 +228,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({
-                    'message': 'Email verified successfully',
-                    'token': token,
-                    'user': {
-                        'id': user['id'],
-                        'email': user['email'],
-                        'email_verified': True
-                    }
-                })
+                'body': json.dumps({'message': 'Reset code verified', 'valid': True})
             }
         
-        elif action == 'login':
+        elif action == 'reset_password':
             email = body_data.get('email', '').strip()
-            password = body_data.get('password', '').strip()
+            code = body_data.get('code', '').strip()
+            new_password = body_data.get('password', '').strip()
             
-            if not email or not password:
+            if not email or not code or not new_password:
                 cursor.close()
                 conn.close()
                 return {
                     'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Email and password are required'})
+                    'body': json.dumps({'error': 'Email, code and password are required'})
                 }
             
-            password_hash = hash_password(password)
+            if len(new_password) < 6:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Password must be at least 6 characters'})
+                }
+            
+            if email.lower() == new_password.lower():
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Email and password must be different'})
+                }
+            
             cursor.execute(
-                "SELECT id, email, created_at, email_verified FROM t_p68014762_remove_login_system.users WHERE email = %s AND password_hash = %s",
-                (email, password_hash)
+                """SELECT id, reset_token, reset_token_expires 
+                   FROM t_p68014762_remove_login_system.users 
+                   WHERE email = %s""",
+                (email,)
             )
             user = cursor.fetchone()
             
@@ -306,28 +278,41 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cursor.close()
                 conn.close()
                 return {
-                    'statusCode': 401,
+                    'statusCode': 404,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Invalid email or password'})
+                    'body': json.dumps({'error': 'User not found'})
                 }
             
-            if not user['email_verified']:
+            if not user['reset_token'] or user['reset_token'] != code:
                 cursor.close()
                 conn.close()
                 return {
-                    'statusCode': 403,
+                    'statusCode': 400,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                     'isBase64Encoded': False,
-                    'body': json.dumps({'error': 'Email not verified. Please check your email for verification code.'})
+                    'body': json.dumps({'error': 'Invalid reset code'})
                 }
             
-            token = generate_token()
-            expires_at = datetime.now() + timedelta(days=30)
+            if datetime.now() > user['reset_token_expires']:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Reset code expired'})
+                }
+            
+            new_password_hash = hash_password(new_password)
+            
             cursor.execute(
-                "INSERT INTO sessions (user_id, token, expires_at) VALUES (%s, %s, %s)",
-                (user['id'], token, expires_at)
+                """UPDATE t_p68014762_remove_login_system.users 
+                   SET password_hash = %s, reset_token = NULL, reset_token_expires = NULL 
+                   WHERE id = %s""",
+                (new_password_hash, user['id'])
             )
+            cursor.execute("DELETE FROM sessions WHERE user_id = %s", (user['id'],))
             conn.commit()
             
             cursor.close()
@@ -337,18 +322,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({
-                    'user': {
-                        'id': user['id'],
-                        'email': user['email'],
-                        'created_at': user['created_at'].isoformat(),
-                        'email_verified': user['email_verified']
-                    },
-                    'token': token
-                })
+                'body': json.dumps({'message': 'Password reset successfully'})
             }
     
-    elif method == 'GET':
+    elif method == 'DELETE':
         auth_token = event.get('headers', {}).get('X-Auth-Token')
         
         if not auth_token:
@@ -363,7 +340,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         cursor.execute(
             """
-            SELECT u.id, u.email, u.created_at, s.expires_at
+            SELECT u.id, u.email
             FROM t_p68014762_remove_login_system.users u
             JOIN sessions s ON u.id = s.user_id
             WHERE s.token = %s AND s.expires_at > NOW()
@@ -372,10 +349,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         user_session = cursor.fetchone()
         
-        cursor.close()
-        conn.close()
-        
         if not user_session:
+            cursor.close()
+            conn.close()
             return {
                 'statusCode': 401,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -383,18 +359,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Invalid or expired token'})
             }
         
+        cursor.execute("DELETE FROM sessions WHERE user_id = %s", (user_session['id'],))
+        cursor.execute("DELETE FROM donations WHERE user_id = %s", (user_session['id'],))
+        cursor.execute("DELETE FROM t_p68014762_remove_login_system.users WHERE id = %s", (user_session['id'],))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'isBase64Encoded': False,
-            'body': json.dumps({
-                'user': {
-                    'id': user_session['id'],
-                    'email': user_session['email'],
-                    'created_at': user_session['created_at'].isoformat()
-                }
-            })
+            'body': json.dumps({'message': 'Account deleted successfully'})
         }
+    
+    cursor.close()
+    conn.close()
     
     return {
         'statusCode': 405,

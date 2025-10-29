@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { authService } from '@/lib/auth';
+import PasswordResetDialog from './PasswordResetDialog';
 
 interface AuthDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface AuthDialogProps {
 }
 
 export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialogProps) {
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -152,7 +154,20 @@ export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialog
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Пароль</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password">Пароль</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-sm"
+                      onClick={() => {
+                        onOpenChange(false);
+                        setShowPasswordReset(true);
+                      }}
+                    >
+                      Забыли пароль?
+                    </Button>
+                  </div>
                   <Input
                     id="login-password"
                     type="password"
@@ -225,6 +240,11 @@ export default function AuthDialog({ open, onOpenChange, onSuccess }: AuthDialog
           </Tabs>
         )}
       </DialogContent>
+
+      <PasswordResetDialog 
+        open={showPasswordReset} 
+        onOpenChange={setShowPasswordReset} 
+      />
     </Dialog>
   );
 }

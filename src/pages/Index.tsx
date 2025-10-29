@@ -426,6 +426,10 @@ const Index = () => {
           open={showProfileDialog}
           onOpenChange={setShowProfileDialog}
           user={currentUser}
+          onAccountDeleted={() => {
+            setCurrentUser(null);
+            setHasDonated(false);
+          }}
         />
       )}
     </div>

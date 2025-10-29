@@ -1,0 +1,44 @@
+{
+  "tests": [
+    {
+      "name": "Request password reset",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "request_reset",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify reset code - invalid",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "verify_reset_code",
+        "email": "test@example.com",
+        "code": "000000"
+      },
+      "expectedStatus": 400,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reset password - missing fields",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "reset_password",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
