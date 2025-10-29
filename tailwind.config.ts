@@ -74,7 +74,7 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "100", opacity: "0" },
+          from: { height: "100", opacity: "100" },
           to: { height: "var(--radix-accordion-content-height)", opacity: "1" },
         },
         "accordion-up": {
@@ -82,7 +82,7 @@ export default {
             height: "var(--radix-accordion-content-height)",
             opacity: "1",
           },
-          to: { height: "100", opacity: "0" },
+          to: { height: "100", opacity: "100" },
         },
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(10px)" },
