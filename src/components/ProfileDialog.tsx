@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -27,7 +26,10 @@ interface ProfileDialogProps {
   onAccountDeleted?: () => void;
 }
 
+type TabType = 'profile' | 'notifications' | 'security';
+
 const ProfileDialog = ({ open, onOpenChange, user, onAccountDeleted }: ProfileDialogProps) => {
+  const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -69,90 +71,182 @@ const ProfileDialog = ({ open, onOpenChange, user, onAccountDeleted }: ProfileDi
       setShowDeleteDialog(false);
     }
   };
+
+  const menuItems = [
+    { id: 'profile' as TabType, icon: 'User', label: 'Моя страница' },
+    { id: 'notifications' as TabType, icon: 'Bell', label: 'Уведомления' },
+    { id: 'security' as TabType, icon: 'Shield', label: 'Безопасность' },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Icon name="User" size={24} className="text-primary" />
-            Настройки профиля
-          </DialogTitle>
-          <DialogDescription>
-            Управляйте вашим аккаунтом и настройками уведомлений
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-5xl max-h-[90vh] p-0 gap-0">
+        <div className="flex h-[90vh]">
+          <div className="w-64 bg-muted/30 border-r flex flex-col">
+            <div className="p-6 border-b">
+              <h2 className="font-semibold text-lg">Настройки</h2>
+            </div>
+            
+            <nav className="flex-1 p-2">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    activeTab === item.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <Icon name={item.icon} size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              ))}
+            </nav>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="profile">Профиль</TabsTrigger>
-            <TabsTrigger value="notifications">Уведомления</TabsTrigger>
-          </TabsList>
+            <div className="p-4 border-t">
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => {
+                  authService.logout();
+                  onOpenChange(false);
+                }}
+              >
+                <Icon name="LogOut" size={20} />
+                Выйти
+              </Button>
+            </div>
+          </div>
 
-          <TabsContent value="profile" className="space-y-4 mt-4">
-            <Card>
-              <CardContent className="pt-6 space-y-4">
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'profile' && (
+              <div className="p-8 space-y-6">
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Email</label>
-                  <p className="text-lg font-medium text-foreground mt-1">{user.email}</p>
+                  <h1 className="text-3xl font-bold mb-2">Моя страница</h1>
+                  <p className="text-muted-foreground">Информация о вашем аккаунте</p>
                 </div>
 
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-6 mb-6">
+                      <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Icon name="User" size={40} className="text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold mb-1">{user.email.split('@')[0]}</h2>
+                        <p className="text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4">
+                      <div className="flex items-center justify-between py-3 border-b">
+                        <span className="text-muted-foreground">Статус email</span>
+                        <span>
+                          {user.email_verified ? (
+                            <span className="flex items-center gap-2 text-green-600 font-medium">
+                              <Icon name="CheckCircle2" size={18} />
+                              Подтверждён
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2 text-yellow-600 font-medium">
+                              <Icon name="AlertCircle" size={18} />
+                              Не подтверждён
+                            </span>
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between py-3 border-b">
+                        <span className="text-muted-foreground">Дата регистрации</span>
+                        <span className="font-medium">
+                          {new Date(user.created_at).toLocaleDateString('ru-RU', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="p-8 space-y-6">
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Статус</label>
-                  <p className="text-lg font-medium text-foreground mt-1">
-                    {user.email_verified ? (
-                      <span className="flex items-center gap-2 text-green-600">
-                        <Icon name="CheckCircle2" size={18} />
-                        Подтверждён
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2 text-yellow-600">
-                        <Icon name="AlertCircle" size={18} />
-                        Не подтверждён
-                      </span>
-                    )}
-                  </p>
+                  <h1 className="text-3xl font-bold mb-2">Уведомления</h1>
+                  <p className="text-muted-foreground">Настройте, какие уведомления вы хотите получать</p>
                 </div>
+                <SubscriptionSettings userEmail={user.email} />
+              </div>
+            )}
 
+            {activeTab === 'security' && (
+              <div className="p-8 space-y-6">
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Дата регистрации</label>
-                  <p className="text-lg font-medium text-foreground mt-1">
-                    {new Date(user.created_at).toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </p>
+                  <h1 className="text-3xl font-bold mb-2">Безопасность</h1>
+                  <p className="text-muted-foreground">Управление безопасностью аккаунта</p>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card className="border-red-500/20">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <Icon name="AlertTriangle" size={24} className="text-red-500 mt-1" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground mb-2">Опасная зона</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Удаление аккаунта необратимо. Все ваши данные, включая донаты и настройки, будут удалены навсегда.
-                    </p>
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="gap-2"
-                    >
-                      <Icon name="Trash2" size={16} />
-                      Удалить аккаунт
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <Icon name="Key" size={24} className="text-primary mt-1" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-2">Пароль</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Регулярно меняйте пароль для защиты вашего аккаунта
+                        </p>
+                        <Button variant="outline" className="gap-2">
+                          <Icon name="Lock" size={16} />
+                          Изменить пароль
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="notifications" className="mt-4">
-            <SubscriptionSettings userEmail={user.email} />
-          </TabsContent>
-        </Tabs>
+                <Card className="border-red-500/20 bg-red-50/50">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <Icon name="AlertTriangle" size={24} className="text-red-500 mt-1" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-2">Опасная зона</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Удаление аккаунта необратимо. Все ваши данные, включая донаты и настройки, будут удалены навсегда.
+                        </p>
+                        <ul className="text-sm text-muted-foreground mb-4 space-y-1">
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} className="text-red-500" />
+                            История донатов
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} className="text-red-500" />
+                            Настройки подписки
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Icon name="X" size={14} className="text-red-500" />
+                            Все персональные данные
+                          </li>
+                        </ul>
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => setShowDeleteDialog(true)}
+                          className="gap-2"
+                        >
+                          <Icon name="Trash2" size={16} />
+                          Удалить аккаунт
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </div>
       </DialogContent>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
