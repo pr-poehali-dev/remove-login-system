@@ -1,117 +1,182 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Roboto:wght@300;400;500;700&display=swap");
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 0 84% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 84% 55%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 0 84% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 12%;
-    --ring: 0 84% 55%;
-
-    --radius: 0.5rem;
-  }
+interface BackgroundSettingsProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+const PRESET_BACKGROUNDS = [
+  { name: "Тёмный градиент", value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { name: "Синий океан", value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)" },
+  { name: "Закат", value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)" },
+  { name: "Лес", value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)" },
+  { name: "Огненный", value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)" },
+  { name: "Ночное небо", value: "linear-gradient(135deg, #000428 0%, #004e92 100%)" },
+];
 
-  body {
-    @apply bg-background text-foreground;
-  }
+// === Применение фона ко всей странице ===
+function applyBackground(background: string) {
+  const html = document.documentElement;
+  const body = document.body;
+
+  [html, body].forEach((el) => {
+    if (!el) return;
+
+    if (background.includes("url(")) {
+      el.style.background = background;
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center center";
+      el.style.backgroundAttachment = "fixed";
+      el.style.backgroundRepeat = "no-repeat";
+    } else {
+      el.style.background = background;
+    }
+  });
 }
 
-/* Naruto Mode Styles */
-@keyframes floatRamen {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(-5deg);
-  }
-  50% {
-    transform: translateY(-30px) rotate(5deg);
-  }
+// === Сброс фона ===
+function resetBackground() {
+  const html = document.documentElement;
+  const body = document.body;
+  [html, body].forEach((el) => el.removeAttribute("style"));
 }
 
-@keyframes narutoHandSign {
-  0%,
-  100% {
-    transform: scale(1) rotate(-2deg);
-  }
-  25% {
-    transform: scale(1.05) rotate(2deg);
-  }
-  50% {
-    transform: scale(1.1) rotate(-1deg);
-  }
-  75% {
-    transform: scale(1.05) rotate(1deg);
-  }
-}
+export default function BackgroundSettings({
+  open,
+  onOpenChange,
+}: BackgroundSettingsProps) {
+  const [customGradient, setCustomGradient] = useState(
+    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+  );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-.naruto-mode {
-  background: linear-gradient(
-    135deg,
-    #994400 0%,
-    #bb5500 25%,
-    #dd6600 50%,
-    #ee7700 75%,
-    #ff8800 100%
-  ) !important;
-}
+  // При открытии диалога — подгружаем сохранённый фон
+  useEffect(() => {
+    if (open) {
+      const savedBackground = localStorage.getItem("app_background");
+      const savedImage = localStorage.getItem("app_background_image");
 
-.naruto-ramen::before,
-.naruto-ramen::after {
-  content: "🍜";
-  position: absolute;
-  font-size: 4rem;
-  animation: floatRamen 5s infinite ease-in-out;
-  top: 15%;
-  left: 10%;
-  filter: drop-shadow(0 0 15px rgba(255, 136, 0, 0.7));
-}
+      if (savedBackground) {
+        applyBackground(savedBackground);
+      } else if (savedImage) {
+        applyBackground(`url(${savedImage}) center/cover fixed`);
+      }
+    }
+  }, [open]);
 
-.naruto-ramen::after {
-  left: 80%;
-  top: 65%;
-  animation-delay: 2.5s;
-}
+  const applyPresetBackground = (background: string) => {
+    localStorage.setItem("app_background", background);
+    localStorage.removeItem("app_background_image");
+    applyBackground(background);
+  };
 
-.naruto-character {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  font-size: 150px;
-  animation: narutoHandSign 2.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 25px rgba(255, 136, 0, 0.9));
-}
+  const applyCustomGradient = () => {
+    localStorage.setItem("app_background", customGradient);
+    localStorage.removeItem("app_background_image");
+    applyBackground(customGradient);
+  };
 
-.naruto-character::before {
-  content: "🙏";
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        localStorage.setItem("app_background_image", imageUrl);
+        localStorage.removeItem("app_background");
+        applyBackground(`url(${imageUrl}) center/cover fixed`);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetAllBackgrounds = () => {
+    localStorage.removeItem("app_background");
+    localStorage.removeItem("app_background_image");
+    resetBackground();
+    setSelectedFile(null);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">Настройки фона</DialogTitle>
+          <DialogDescription>
+            Выберите готовый фон, создайте свой градиент или загрузите изображение
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Пресеты */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Готовые фоны</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {PRESET_BACKGROUNDS.map((bg, index) => (
+                <Card
+                  key={index}
+                  className="cursor-pointer border-2 hover:border-blue-500 transition"
+                  onClick={() => applyPresetBackground(bg.value)}
+                >
+                  <CardContent className="p-3">
+                    <div
+                      className="w-full h-20 rounded-md mb-2"
+                      style={{ background: bg.value }}
+                    />
+                    <p className="font-medium">{bg.name}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Кастомный градиент */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Свой градиент</h3>
+            <div className="flex gap-2">
+              <Input
+                value={customGradient}
+                onChange={(e) => setCustomGradient(e.target.value)}
+                placeholder="linear-gradient(135deg, #color1 0%, #color2 100%)"
+              />
+              <Button onClick={applyCustomGradient}>Применить</Button>
+            </div>
+            <div
+              className="w-full h-20 rounded-md border mt-2"
+              style={{ background: customGradient }}
+            />
+          </div>
+
+          {/* Картинка */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Загрузить изображение</h3>
+            <Input type="file" accept="image/*" onChange={handleFileUpload} />
+            {selectedFile && (
+              <p className="text-sm text-green-600 mt-2">
+                Выбран файл: {selectedFile.name}
+              </p>
+            )}
+            <Button
+              variant="outline"
+              onClick={resetAllBackgrounds}
+              className="w-full mt-3"
+            >
+              Сбросить фон
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
