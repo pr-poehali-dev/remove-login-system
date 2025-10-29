@@ -39,26 +39,32 @@ const PRESET_BACKGROUNDS = [
   },
 ];
 
+// Функция для применения фона к root и body
 function applyBackground(background: string) {
   const root = document.querySelector("#root") as HTMLElement;
   const body = document.body;
 
-  if (background.includes("url(")) {
-    root.style.background = background;
-    root.style.backgroundSize = "cover";
-    root.style.backgroundPosition = "center";
-    root.style.backgroundAttachment = "fixed";
+  // Очищаем предыдущие стили
+  root.style.cssText = "";
+  body.style.cssText = "";
 
-    body.style.background = background;
-    body.style.backgroundSize = "cover";
-    body.style.backgroundPosition = "center";
-    body.style.backgroundAttachment = "fixed";
+  if (background.includes("url(")) {
+    // Для изображений: фиксированный фон с покрытием
+    root.style.cssText = `
+      background: ${background};
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    `;
+    body.style.cssText = root.style.cssText; // Синхронизируем с body
   } else {
+    // Для градиентов: просто применяем стиль
     root.style.background = background;
     body.style.background = background;
   }
 }
 
+// Функция сброса фона
 function resetBackground() {
   const root = document.querySelector("#root") as HTMLElement;
   const body = document.body;
@@ -77,6 +83,7 @@ export default function BackgroundSettings({
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // При открытии модального окна восстанавливаем сохранённый фон
   useEffect(() => {
     if (open) {
       const savedBackground = localStorage.getItem("app_background");
@@ -90,18 +97,21 @@ export default function BackgroundSettings({
     }
   }, [open]);
 
+  // Обработчик выбора пресета фона
   const applyPresetBackground = (background: string) => {
     localStorage.setItem("app_background", background);
     localStorage.removeItem("app_background_image");
     applyBackground(background);
   };
 
+  // Обработчик применения кастомного градиента
   const applyCustomGradient = () => {
     localStorage.setItem("app_background", customGradient);
     localStorage.removeItem("app_background_image");
     applyBackground(customGradient);
   };
 
+  // Обработчик загрузки изображения
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -117,6 +127,7 @@ export default function BackgroundSettings({
     }
   };
 
+  // Сброс всех настроек фона
   const resetAllBackgrounds = () => {
     localStorage.removeItem("app_background");
     localStorage.removeItem("app_background_image");
@@ -138,7 +149,7 @@ export default function BackgroundSettings({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Пресеты */}
+          {/* Готовые фоны (пресеты) */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Готовые фоны</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -177,7 +188,7 @@ export default function BackgroundSettings({
             />
           </div>
 
-          {/* Картинка */}
+          {/* Загрузка изображения */}
           <div>
             <h3 className="text-lg font-semibold mb-3">
               Загрузить изображение
