@@ -137,7 +137,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'Email and password must be different'})
                 }
             
-            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            cursor.execute("SELECT id FROM t_p68014762_remove_login_system.users WHERE email = %s", (email,))
             existing_user = cursor.fetchone()
             
             if existing_user:
@@ -153,11 +153,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             verification_code = generate_verification_code()
             code_expires = datetime.now() + timedelta(minutes=10)
             password_hash = hash_password(password)
+            unsubscribe_token = secrets.token_urlsafe(48)
             
             cursor.execute(
-                """INSERT INTO users (email, password_hash, email_verified, verification_code, verification_code_expires) 
-                   VALUES (%s, %s, FALSE, %s, %s) RETURNING id, email, created_at""",
-                (email, password_hash, verification_code, code_expires)
+                """INSERT INTO t_p68014762_remove_login_system.users 
+                   (email, password_hash, email_verified, verification_code, verification_code_expires, subscribed_to_updates, unsubscribe_token) 
+                   VALUES (%s, %s, FALSE, %s, %s, TRUE, %s) RETURNING id, email, created_at""",
+                (email, password_hash, verification_code, code_expires, unsubscribe_token)
             )
             user = cursor.fetchone()
             conn.commit()
@@ -199,7 +201,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor.execute(
                 """SELECT id, email, verification_code, verification_code_expires, email_verified 
-                   FROM users WHERE email = %s""",
+                   FROM t_p68014762_remove_login_system.users WHERE email = %s""",
                 (email,)
             )
             user = cursor.fetchone()
@@ -245,7 +247,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             cursor.execute(
-                "UPDATE users SET email_verified = TRUE, verification_code = NULL WHERE id = %s",
+                "UPDATE t_p68014762_remove_login_system.users SET email_verified = TRUE, verification_code = NULL WHERE id = %s",
                 (user['id'],)
             )
             conn.commit()
@@ -292,7 +294,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             password_hash = hash_password(password)
             cursor.execute(
-                "SELECT id, email, created_at, email_verified FROM users WHERE email = %s AND password_hash = %s",
+                "SELECT id, email, created_at, email_verified FROM t_p68014762_remove_login_system.users WHERE email = %s AND password_hash = %s",
                 (email, password_hash)
             )
             user = cursor.fetchone()
@@ -359,7 +361,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor.execute(
             """
             SELECT u.id, u.email, u.created_at, s.expires_at
-            FROM users u
+            FROM t_p68014762_remove_login_system.users u
             JOIN sessions s ON u.id = s.user_id
             WHERE s.token = %s AND s.expires_at > NOW()
             """,

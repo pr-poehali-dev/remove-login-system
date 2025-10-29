@@ -1,0 +1,46 @@
+{
+  "tests": [
+    {
+      "name": "Get subscription status",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "status",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscribed": "boolean"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Subscribe to updates",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "subscribe",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscribed": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unsubscribe from updates",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "unsubscribe",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscribed": false
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import Icon from '@/components/ui/icon';
 import AuthDialog from '@/components/AuthDialog';
 import DonationDialog from '@/components/DonationDialog';
+import ProfileDialog from '@/components/ProfileDialog';
 import { authService, type User } from '@/lib/auth';
 
 const modsList: any[] = [];
@@ -19,6 +20,7 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showDonationDialog, setShowDonationDialog] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasDonated, setHasDonated] = useState(false);
   const [narutoMode, setNarutoMode] = useState(false);
@@ -139,6 +141,10 @@ const Index = () => {
                       Донатер
                     </Badge>
                   )}
+                  <Button variant="ghost" size="sm" onClick={() => setShowProfileDialog(true)}>
+                    <Icon name="Settings" size={16} />
+                    Настройки
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={handleLogout}>
                     <Icon name="LogOut" size={16} />
                     Выход
@@ -382,6 +388,9 @@ const Index = () => {
           </div>
           
           <div className="flex flex-wrap justify-center gap-6 mb-6">
+            <a href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+              Пользовательское соглашение
+            </a>
             <a href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
               Политика конфиденциальности
             </a>
@@ -411,6 +420,14 @@ const Index = () => {
         onOpenChange={setShowDonationDialog}
         onSuccess={handleDonationSuccess}
       />
+
+      {currentUser && (
+        <ProfileDialog
+          open={showProfileDialog}
+          onOpenChange={setShowProfileDialog}
+          user={currentUser}
+        />
+      )}
     </div>
   );
 };

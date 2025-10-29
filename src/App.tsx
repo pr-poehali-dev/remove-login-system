@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Privacy from "./pages/Privacy";
 import Support from "./pages/Support";
+import Terms from "./pages/Terms";
+import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,7 +24,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/aidenRugaMes26480.エイデン コールドウェル✞" element={<Admin />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
