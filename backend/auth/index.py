@@ -34,13 +34,14 @@ def send_verification_email(email: str, code: str) -> bool:
     smtp_port = int(os.environ.get('SMTP_PORT', '587'))
     smtp_user = os.environ.get('SMTP_USER')
     smtp_password = os.environ.get('SMTP_PASSWORD')
+    sender_email = 'ruprojectgames@gmail.com'
     
     if not all([smtp_host, smtp_user, smtp_password]):
         return False
     
     msg = MIMEMultipart('alternative')
     msg['Subject'] = 'Код подтверждения регистрации'
-    msg['From'] = smtp_user
+    msg['From'] = sender_email
     msg['To'] = email
     
     text = f'Ваш код подтверждения: {code}\n\nКод действителен 10 минут.'

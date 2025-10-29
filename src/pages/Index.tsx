@@ -380,17 +380,33 @@ const Index = () => {
       </section>
 
       <footer className="border-t border-border bg-card/50 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Icon name="Gamepad2" size={20} className="text-primary-foreground" />
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Icon name="Gamepad2" size={20} className="text-primary-foreground" />
+              </div>
+              <span className="font-heading font-bold text-xl">ruprojectgames</span>
             </div>
-            <span className="font-heading font-bold text-xl">ruprojectgames</span>
+            <p className="text-muted-foreground mb-2">
+              База переводов модов для RPG игр
+            </p>
           </div>
-          <p className="text-muted-foreground mb-2">
-            База переводов модов для RPG игр
-          </p>
-          <p className="text-sm text-muted-foreground">
+          
+          <div className="flex flex-wrap justify-center gap-6 mb-6">
+            <a href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+              Политика конфиденциальности
+            </a>
+            <a href="/support" className="text-muted-foreground hover:text-primary transition-colors">
+              Поддержка
+            </a>
+            <a href="mailto:ruprojectgames@gmail.com" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+              <Icon name="Mail" size={16} />
+              ruprojectgames@gmail.com
+            </a>
+          </div>
+          
+          <p className="text-sm text-muted-foreground text-center">
             © 2025 ruprojectgames. Все переводы распространяются бесплатно
           </p>
         </div>

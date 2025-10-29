@@ -53,8 +53,12 @@ function applyBackground(background: string) {
       el.style.backgroundPosition = "center center";
       el.style.backgroundAttachment = "fixed";
       el.style.backgroundRepeat = "no-repeat";
+      el.style.minHeight = "100vh";
+      el.style.height = "100%";
     } else {
       el.style.background = background;
+      el.style.minHeight = "100vh";
+      el.style.height = "100%";
     }
   });
 }
