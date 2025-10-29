@@ -19,61 +19,54 @@ const PRESET_BACKGROUNDS = [
   {
     name: "Тёмный градиент",
     value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    description: "Глубокий тёмный фон",
   },
   {
     name: "Синий океан",
     value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)",
-    description: "Холодный и чистый",
   },
   {
     name: "Закат",
     value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)",
-    description: "Мягкий закат",
   },
-  {
-    name: "Лес",
-    value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)",
-    description: "Природный стиль",
-  },
+  { name: "Лес", value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)" },
   {
     name: "Огненный",
     value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)",
-    description: "Тёплый и динамичный",
   },
   {
     name: "Ночное небо",
     value: "linear-gradient(135deg, #000428 0%, #004e92 100%)",
-    description: "Глубокое небо",
   },
 ];
 
-// ✅ Фон теперь задаётся через CSS-переменную, чтобы не мешал Tailwind
-const setBackground = (background: string) => {
-  const root = document.documentElement;
-  root.style.setProperty("--app-background", background);
+function applyBackground(background: string) {
+  const root = document.querySelector("#root") as HTMLElement;
+  const body = document.body;
 
   if (background.includes("url(")) {
-    root.style.setProperty("--app-background-size", "cover");
-    root.style.setProperty("--app-background-position", "center");
-    root.style.setProperty("--app-background-attachment", "fixed");
-  } else {
-    root.style.setProperty("--app-background-size", "auto");
-    root.style.setProperty("--app-background-position", "center");
-    root.style.setProperty("--app-background-attachment", "fixed");
-  }
-  console.log("✅ Фон применён:", background);
-};
+    root.style.background = background;
+    root.style.backgroundSize = "cover";
+    root.style.backgroundPosition = "center";
+    root.style.backgroundAttachment = "fixed";
 
-// Сброс фона
-const resetBackground = () => {
-  const root = document.documentElement;
-  root.style.removeProperty("--app-background");
-  root.style.removeProperty("--app-background-size");
-  root.style.removeProperty("--app-background-position");
-  root.style.removeProperty("--app-background-attachment");
-  console.log("Фон сброшен");
-};
+    body.style.background = background;
+    body.style.backgroundSize = "cover";
+    body.style.backgroundPosition = "center";
+    body.style.backgroundAttachment = "fixed";
+  } else {
+    root.style.background = background;
+    body.style.background = background;
+  }
+}
+
+function resetBackground() {
+  const root = document.querySelector("#root") as HTMLElement;
+  const body = document.body;
+  if (root && body) {
+    root.removeAttribute("style");
+    body.removeAttribute("style");
+  }
+}
 
 export default function BackgroundSettings({
   open,
@@ -84,43 +77,47 @@ export default function BackgroundSettings({
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // ✅ Автоматическое применение при загрузке сайта
   useEffect(() => {
-    const savedBackground = localStorage.getItem("app_background");
-    const savedImage = localStorage.getItem("app_background_image");
-    if (savedBackground) setBackground(savedBackground);
-    else if (savedImage) setBackground(`url(${savedImage}) center/cover fixed`);
-  }, []);
+    if (open) {
+      const savedBackground = localStorage.getItem("app_background");
+      const savedImage = localStorage.getItem("app_background_image");
 
-  const applyPreset = (bg: string) => {
-    localStorage.setItem("app_background", bg);
+      if (savedBackground) {
+        applyBackground(savedBackground);
+      } else if (savedImage) {
+        applyBackground(`url(${savedImage}) center/cover fixed`);
+      }
+    }
+  }, [open]);
+
+  const applyPresetBackground = (background: string) => {
+    localStorage.setItem("app_background", background);
     localStorage.removeItem("app_background_image");
-    setBackground(bg);
+    applyBackground(background);
   };
 
-  const applyCustom = () => {
-    if (customGradient.trim()) {
-      localStorage.setItem("app_background", customGradient);
-      localStorage.removeItem("app_background_image");
-      setBackground(customGradient);
+  const applyCustomGradient = () => {
+    localStorage.setItem("app_background", customGradient);
+    localStorage.removeItem("app_background_image");
+    applyBackground(customGradient);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        localStorage.setItem("app_background_image", imageUrl);
+        localStorage.removeItem("app_background");
+        applyBackground(`url(${imageUrl}) center/cover fixed`);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const url = ev.target?.result as string;
-      localStorage.setItem("app_background_image", url);
-      localStorage.removeItem("app_background");
-      setBackground(`url(${url}) center/cover fixed`);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const resetAll = () => {
+  const resetAllBackgrounds = () => {
     localStorage.removeItem("app_background");
     localStorage.removeItem("app_background_image");
     resetBackground();
@@ -135,7 +132,8 @@ export default function BackgroundSettings({
             Настройки фона
           </DialogTitle>
           <DialogDescription>
-            Выберите готовый фон, создайте свой или загрузите изображение
+            Выберите готовый фон, создайте свой градиент или загрузите
+            изображение
           </DialogDescription>
         </DialogHeader>
 
@@ -144,21 +142,18 @@ export default function BackgroundSettings({
           <div>
             <h3 className="text-lg font-semibold mb-3">Готовые фоны</h3>
             <div className="grid grid-cols-2 gap-3">
-              {PRESET_BACKGROUNDS.map((bg, i) => (
+              {PRESET_BACKGROUNDS.map((bg, index) => (
                 <Card
-                  key={i}
+                  key={index}
                   className="cursor-pointer border-2 hover:border-blue-500 transition"
-                  onClick={() => applyPreset(bg.value)}
+                  onClick={() => applyPresetBackground(bg.value)}
                 >
                   <CardContent className="p-3">
                     <div
                       className="w-full h-20 rounded-md mb-2"
                       style={{ background: bg.value }}
                     />
-                    <div>
-                      <p className="font-medium">{bg.name}</p>
-                      <p className="text-sm text-gray-600">{bg.description}</p>
-                    </div>
+                    <p className="font-medium">{bg.name}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -172,30 +167,30 @@ export default function BackgroundSettings({
               <Input
                 value={customGradient}
                 onChange={(e) => setCustomGradient(e.target.value)}
-                placeholder="linear-gradient(135deg, #color1, #color2)"
+                placeholder="linear-gradient(135deg, #color1 0%, #color2 100%)"
               />
-              <Button onClick={applyCustom}>Применить</Button>
+              <Button onClick={applyCustomGradient}>Применить</Button>
             </div>
             <div
-              className="w-full h-20 rounded-md border mt-3"
+              className="w-full h-20 rounded-md border mt-2"
               style={{ background: customGradient }}
             />
           </div>
 
-          {/* Загрузка изображения */}
+          {/* Картинка */}
           <div>
             <h3 className="text-lg font-semibold mb-3">
               Загрузить изображение
             </h3>
-            <Input type="file" accept="image/*" onChange={handleFile} />
+            <Input type="file" accept="image/*" onChange={handleFileUpload} />
             {selectedFile && (
-              <p className="text-sm text-green-600 mt-1">
+              <p className="text-sm text-green-600 mt-2">
                 Выбран файл: {selectedFile.name}
               </p>
             )}
             <Button
               variant="outline"
-              onClick={resetAll}
+              onClick={resetAllBackgrounds}
               className="w-full mt-3"
             >
               Сбросить фон
