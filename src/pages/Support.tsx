@@ -7,8 +7,8 @@ const Support = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+    <div className="min-h-screen">
+      <header className="border-b border-border sticky top-0 z-50 bg-background">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

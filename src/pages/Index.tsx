@@ -8,7 +8,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import Icon from '@/components/ui/icon';
 import AuthDialog from '@/components/AuthDialog';
 import DonationDialog from '@/components/DonationDialog';
-import BackgroundSettings from '@/components/BackgroundSettings';
 import { authService, type User } from '@/lib/auth';
 
 const modsList: any[] = [];
@@ -20,7 +19,6 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showDonationDialog, setShowDonationDialog] = useState(false);
-  const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasDonated, setHasDonated] = useState(false);
   const [narutoMode, setNarutoMode] = useState(false);
@@ -28,13 +26,6 @@ const Index = () => {
 
   useEffect(() => {
     checkAuth();
-    const savedBg = localStorage.getItem('custom_background');
-    const savedImage = localStorage.getItem('background_image');
-    if (savedImage) {
-      document.body.style.background = `url(${savedImage}) center/cover fixed`;
-    } else if (savedBg) {
-      document.body.style.background = savedBg;
-    }
   }, []);
 
   useEffect(() => {
@@ -112,7 +103,7 @@ const Index = () => {
         </div>
       )}
       
-      <header className="border-b border-border bg-card/50 backdrop-blur sticky top-0 z-50">
+      <header className="border-b border-border sticky top-0 z-50 bg-background">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -140,9 +131,6 @@ const Index = () => {
                   Новости
                 </a>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setShowBackgroundSettings(true)}>
-                <Icon name="Palette" size={16} />
-              </Button>
               {currentUser ? (
                 <div className="flex items-center gap-3">
                   {hasDonated && (
@@ -167,7 +155,7 @@ const Index = () => {
         </div>
       </header>
 
-      <section id="home" className="py-20 bg-gradient-to-b from-background to-card/30">
+      <section id="home" className="py-20">
         <div className="container mx-auto px-4 text-center animate-fade-in">
           <h2 className="text-5xl md:text-6xl font-heading font-bold mb-6 text-foreground">
             Русификация модов для RPG
@@ -266,7 +254,7 @@ const Index = () => {
         </div>
       </section>
 
-      <section id="instructions" className="py-16 bg-card/30">
+      <section id="instructions" className="py-16">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl font-heading font-bold mb-8 text-foreground text-center">
             Как установить русификатор?
@@ -379,7 +367,7 @@ const Index = () => {
         </div>
       </section>
 
-      <footer className="border-t border-border bg-card/50 py-8 mt-16">
+      <footer className="border-t border-border py-8 mt-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -422,11 +410,6 @@ const Index = () => {
         open={showDonationDialog}
         onOpenChange={setShowDonationDialog}
         onSuccess={handleDonationSuccess}
-      />
-      
-      <BackgroundSettings
-        open={showBackgroundSettings}
-        onOpenChange={setShowBackgroundSettings}
       />
     </div>
   );
