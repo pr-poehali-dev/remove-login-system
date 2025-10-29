@@ -16,65 +16,39 @@ interface BackgroundSettingsProps {
 }
 
 const PRESET_BACKGROUNDS = [
-  {
-    name: "Тёмный градиент",
-    value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  },
-  {
-    name: "Синий океан",
-    value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)",
-  },
-  {
-    name: "Закат",
-    value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)",
-  },
+  { name: "Тёмный градиент", value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { name: "Синий океан", value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)" },
+  { name: "Закат", value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)" },
   { name: "Лес", value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)" },
-  {
-    name: "Огненный",
-    value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)",
-  },
-  {
-    name: "Ночное небо",
-    value: "linear-gradient(135deg, #000428 0%, #004e92 100%)",
-  },
+  { name: "Огненный", value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)" },
+  { name: "Ночное небо", value: "linear-gradient(135deg, #000428 0%, #004e92 100%)" },
 ];
 
-// Функция для применения фона к root и body
+// === Применение фона ко всей странице ===
 function applyBackground(background: string) {
-  const root = document.querySelector("#root") as HTMLElement;
+  const html = document.documentElement;
   const body = document.body;
 
-  // Очищаем предыдущие стили
-  root.style.cssText = "";
-  body.style.cssText = "";
+  [html, body].forEach((el) => {
+    if (!el) return;
 
-  if (background.includes("url(")) {
-    // Для изображений: фиксированный фон с покрытием
-    root.style.cssText = `
-      body {
-      min-height: 100vh;
-      width: 100vw;
-      background: ${background};
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-    `;
-    body.style.cssText = root.style.cssText; // Синхронизируем с body
-  } else {
-    // Для градиентов: просто применяем стиль
-    root.style.background = background;
-    body.style.background = background;
-  }
+    if (background.includes("url(")) {
+      el.style.background = background;
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center center";
+      el.style.backgroundAttachment = "fixed";
+      el.style.backgroundRepeat = "no-repeat";
+    } else {
+      el.style.background = background;
+    }
+  });
 }
 
-// Функция сброса фона
+// === Сброс фона ===
 function resetBackground() {
-  const root = document.querySelector("#root") as HTMLElement;
+  const html = document.documentElement;
   const body = document.body;
-  if (root && body) {
-    root.removeAttribute("style");
-    body.removeAttribute("style");
-  }
+  [html, body].forEach((el) => el.removeAttribute("style"));
 }
 
 export default function BackgroundSettings({
@@ -82,11 +56,11 @@ export default function BackgroundSettings({
   onOpenChange,
 }: BackgroundSettingsProps) {
   const [customGradient, setCustomGradient] = useState(
-    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // При открытии модального окна восстанавливаем сохранённый фон
+  // При открытии диалога — подгружаем сохранённый фон
   useEffect(() => {
     if (open) {
       const savedBackground = localStorage.getItem("app_background");
@@ -100,21 +74,18 @@ export default function BackgroundSettings({
     }
   }, [open]);
 
-  // Обработчик выбора пресета фона
   const applyPresetBackground = (background: string) => {
     localStorage.setItem("app_background", background);
     localStorage.removeItem("app_background_image");
     applyBackground(background);
   };
 
-  // Обработчик применения кастомного градиента
   const applyCustomGradient = () => {
     localStorage.setItem("app_background", customGradient);
     localStorage.removeItem("app_background_image");
     applyBackground(customGradient);
   };
 
-  // Обработчик загрузки изображения
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -130,7 +101,6 @@ export default function BackgroundSettings({
     }
   };
 
-  // Сброс всех настроек фона
   const resetAllBackgrounds = () => {
     localStorage.removeItem("app_background");
     localStorage.removeItem("app_background_image");
@@ -142,17 +112,14 @@ export default function BackgroundSettings({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Настройки фона
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Настройки фона</DialogTitle>
           <DialogDescription>
-            Выберите готовый фон, создайте свой градиент или загрузите
-            изображение
+            Выберите готовый фон, создайте свой градиент или загрузите изображение
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Готовые фоны (пресеты) */}
+          {/* Пресеты */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Готовые фоны</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -191,11 +158,9 @@ export default function BackgroundSettings({
             />
           </div>
 
-          {/* Загрузка изображения */}
+          {/* Картинка */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">
-              Загрузить изображение
-            </h3>
+            <h3 className="text-lg font-semibold mb-3">Загрузить изображение</h3>
             <Input type="file" accept="image/*" onChange={handleFileUpload} />
             {selectedFile && (
               <p className="text-sm text-green-600 mt-2">
@@ -214,4 +179,26 @@ export default function BackgroundSettings({
       </DialogContent>
     </Dialog>
   );
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === GLOBAL BACKGROUND FIX === */
+html, body, #root {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: #0f172a;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  transition: background 0.5s ease;
+}
+
+#root > * {
+  background: transparent !important;
 }
