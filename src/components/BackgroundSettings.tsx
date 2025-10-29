@@ -51,6 +51,8 @@ function applyBackground(background: string) {
   if (background.includes("url(")) {
     // Для изображений: фиксированный фон с покрытием
     root.style.cssText = `
+      min-height: 100vh;
+      width: 100vw;
       background: ${background};
       background-size: cover;
       background-position: center;
