@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -20,81 +19,72 @@ const PRESET_BACKGROUNDS = [
   {
     name: "Тёмный градиент",
     value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    description: "Самый сложен",
+    description: "Глубокий тёмный фон",
   },
   {
     name: "Синий океан",
     value: "linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%)",
-    description: "Отменный",
+    description: "Холодный и чистый",
   },
   {
     name: "Закат",
     value: "linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 90%, #2BFF88 100%)",
-    description: "Закат",
+    description: "Мягкий закат",
   },
   {
     name: "Лес",
     value: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)",
-    description: "Лес",
+    description: "Природный стиль",
   },
   {
     name: "Огненный",
     value: "linear-gradient(135deg, #FF512F 0%, #F09819 100%)",
-    description: "Ответный",
+    description: "Тёплый и динамичный",
   },
   {
     name: "Ночное небо",
     value: "linear-gradient(135deg, #000428 0%, #004e92 100%)",
-    description: "Ночное небо",
+    description: "Глубокое небо",
   },
 ];
 
-// Функция для применения фона
+// ✅ Применение фона ко всей странице
 const applyBackground = (background: string) => {
   console.log("Применение фона:", background);
 
-  // Попробуем разные элементы
-  const elements = [
-    document.body,
-    document.querySelector("main"),
-    document.querySelector("#root"),
-    document.querySelector(".app"),
-    document.querySelector(".layout"),
-  ];
+  // Гарантируем, что body и html занимают весь экран
+  document.documentElement.style.height = "100%";
+  document.body.style.height = "100%";
+  document.body.style.margin = "0";
 
-  elements.forEach((element) => {
-    if (element && element instanceof HTMLElement) {
-      if (background.includes("url(")) {
-        element.style.background = background;
-        element.style.backgroundSize = "cover";
-        element.style.backgroundPosition = "center";
-        element.style.backgroundAttachment = "fixed";
-      } else {
-        element.style.background = background;
-      }
-      console.log("Фон применен к:", element);
-    }
-  });
+  // Убираем стандартные tailwind-классы, мешающие фону
+  document.body.classList.remove("bg-background", "bg-white", "bg-gray-100");
+  const root = document.getElementById("root");
+  if (root) root.classList.remove("bg-background", "bg-white", "bg-gray-100");
+
+  // Применяем фон
+  if (background.includes("url(")) {
+    document.body.style.background = background;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundAttachment = "fixed";
+  } else {
+    document.body.style.background = background;
+    document.body.style.backgroundAttachment = "fixed";
+  }
+
+  console.log("✅ Фон применён успешно");
 };
 
-// Функция для сброса фона
+// ✅ Сброс фона
 const resetBackground = () => {
-  const elements = [
-    document.body,
-    document.querySelector("main"),
-    document.querySelector("#root"),
-    document.querySelector(".app"),
-    document.querySelector(".layout"),
-  ];
+  document.body.style.background = "";
+  document.body.style.backgroundSize = "";
+  document.body.style.backgroundPosition = "";
+  document.body.style.backgroundAttachment = "";
 
-  elements.forEach((element) => {
-    if (element && element instanceof HTMLElement) {
-      element.style.background = "";
-      element.style.backgroundSize = "";
-      element.style.backgroundPosition = "";
-      element.style.backgroundAttachment = "";
-    }
-  });
+  document.body.classList.add("bg-background");
+  console.log("Фон сброшен");
 };
 
 export default function BackgroundSettings({
@@ -106,22 +96,32 @@ export default function BackgroundSettings({
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Загрузка сохраненных настроек при открытии
+  // ✅ Автоматическое применение при загрузке сайта
+  useEffect(() => {
+    const savedBackground = localStorage.getItem("app_background");
+    const savedImage = localStorage.getItem("app_background_image");
+    if (savedBackground) {
+      applyBackground(savedBackground);
+    } else if (savedImage) {
+      applyBackground(`url(${savedImage}) center/cover fixed`);
+    }
+  }, []);
+
+  // ✅ При открытии окна обновляем предпросмотр
   useEffect(() => {
     if (open) {
       const savedBackground = localStorage.getItem("app_background");
       const savedImage = localStorage.getItem("app_background_image");
-
       if (savedBackground) {
         applyBackground(savedBackground);
       } else if (savedImage) {
-        applyBackground(`url(${savedImage})`);
+        applyBackground(`url(${savedImage}) center/cover fixed`);
       }
     }
   }, [open]);
 
   const applyPresetBackground = (background: string, name: string) => {
-    console.log("Выбран пресет:", name, background);
+    console.log("Выбран пресет:", name);
     localStorage.setItem("app_background", background);
     localStorage.removeItem("app_background_image");
     applyBackground(background);
@@ -129,7 +129,6 @@ export default function BackgroundSettings({
 
   const applyCustomGradient = () => {
     if (customGradient.trim()) {
-      console.log("Применение кастомного градиента:", customGradient);
       localStorage.setItem("app_background", customGradient);
       localStorage.removeItem("app_background_image");
       applyBackground(customGradient);
@@ -140,8 +139,6 @@ export default function BackgroundSettings({
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      console.log("Файл выбран:", file.name);
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageUrl = e.target?.result as string;
@@ -149,7 +146,6 @@ export default function BackgroundSettings({
           localStorage.setItem("app_background_image", imageUrl);
           localStorage.removeItem("app_background");
           applyBackground(`url(${imageUrl}) center/cover fixed`);
-          console.log("Изображение применено");
         }
       };
       reader.readAsDataURL(file);
@@ -161,7 +157,6 @@ export default function BackgroundSettings({
     localStorage.removeItem("app_background_image");
     resetBackground();
     setSelectedFile(null);
-    console.log("Все фоны сброшены");
   };
 
   return (
