@@ -26,7 +26,7 @@ export interface DonationStatus {
 }
 
 export const authService = {
-  async register(email: string, password: string): Promise<AuthResponse> {
+  async register(email: string, password: string): Promise<{ message: string; email_sent: boolean; user: User }> {
     const response = await fetch(AUTH_URL, {
       method: 'POST',
       headers: {
@@ -38,6 +38,23 @@ export const authService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Registration failed');
+    }
+
+    return response.json();
+  },
+
+  async verifyEmail(email: string, code: string): Promise<AuthResponse> {
+    const response = await fetch(AUTH_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action: 'verify_email', email, code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Verification failed');
     }
 
     const data = await response.json();

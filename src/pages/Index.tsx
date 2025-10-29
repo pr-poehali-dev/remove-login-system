@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import Icon from '@/components/ui/icon';
 import AuthDialog from '@/components/AuthDialog';
 import DonationDialog from '@/components/DonationDialog';
+import BackgroundSettings from '@/components/BackgroundSettings';
 import { authService, type User } from '@/lib/auth';
 
 const modsList: any[] = [];
@@ -19,6 +20,7 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState('all');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showDonationDialog, setShowDonationDialog] = useState(false);
+  const [showBackgroundSettings, setShowBackgroundSettings] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasDonated, setHasDonated] = useState(false);
   const [narutoMode, setNarutoMode] = useState(false);
@@ -26,6 +28,13 @@ const Index = () => {
 
   useEffect(() => {
     checkAuth();
+    const savedBg = localStorage.getItem('custom_background');
+    const savedImage = localStorage.getItem('background_image');
+    if (savedImage) {
+      document.body.style.background = `url(${savedImage}) center/cover fixed`;
+    } else if (savedBg) {
+      document.body.style.background = savedBg;
+    }
   }, []);
 
   useEffect(() => {
@@ -68,10 +77,6 @@ const Index = () => {
   const handleDownloadClick = () => {
     if (!currentUser) {
       setShowAuthDialog(true);
-      return;
-    }
-    if (!hasDonated) {
-      setShowDonationDialog(true);
       return;
     }
     alert('Скачивание началось!');
@@ -135,6 +140,9 @@ const Index = () => {
                   Новости
                 </a>
               </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowBackgroundSettings(true)}>
+                <Icon name="Palette" size={16} />
+              </Button>
               {currentUser ? (
                 <div className="flex items-center gap-3">
                   {hasDonated && (
@@ -176,7 +184,7 @@ const Index = () => {
               <Icon name="BookOpen" size={20} />
               Инструкции
             </Button>
-            {currentUser && !hasDonated && (
+            {currentUser && (
               <Button size="lg" variant="default" className="gap-2 bg-red-500 hover:bg-red-600" onClick={() => setShowDonationDialog(true)}>
                 <Icon name="Heart" size={20} />
                 Поддержать проект
@@ -398,6 +406,11 @@ const Index = () => {
         open={showDonationDialog}
         onOpenChange={setShowDonationDialog}
         onSuccess={handleDonationSuccess}
+      />
+      
+      <BackgroundSettings
+        open={showBackgroundSettings}
+        onOpenChange={setShowBackgroundSettings}
       />
     </div>
   );
