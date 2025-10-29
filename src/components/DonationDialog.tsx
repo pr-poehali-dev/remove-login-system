@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Icon from '@/components/ui/icon';
-import { authService, type DonationStatus } from '@/lib/auth';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Icon from "@/components/ui/icon";
+import { authService, type DonationStatus } from "@/lib/auth";
 
 interface DonationDialogProps {
   open: boolean;
@@ -12,11 +18,17 @@ interface DonationDialogProps {
   onSuccess: () => void;
 }
 
-export default function DonationDialog({ open, onOpenChange, onSuccess }: DonationDialogProps) {
-  const [amount, setAmount] = useState('100');
+export default function DonationDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+}: DonationDialogProps) {
+  const [amount, setAmount] = useState("100");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [donationStatus, setDonationStatus] = useState<DonationStatus | null>(null);
+  const [error, setError] = useState("");
+  const [donationStatus, setDonationStatus] = useState<DonationStatus | null>(
+    null,
+  );
 
   useEffect(() => {
     if (open) {
@@ -29,12 +41,12 @@ export default function DonationDialog({ open, onOpenChange, onSuccess }: Donati
       const status = await authService.getDonationStatus();
       setDonationStatus(status);
     } catch (err) {
-      console.error('Failed to load donation status:', err);
+      console.error("Failed to load donation status:", err);
     }
   };
 
   const handleBoostyRedirect = () => {
-    window.open('https://boosty.to/YOUR_BOOSTY_USERNAME', '_blank');
+    window.open("https://boosty.to/dlightru", "_blank");
   };
 
   return (
@@ -46,7 +58,8 @@ export default function DonationDialog({ open, onOpenChange, onSuccess }: Donati
             Поддержать проект
           </DialogTitle>
           <DialogDescription>
-            Все файлы доступны бесплатно. Донаты помогают развивать проект и добавлять новые русификаторы.
+            Все файлы доступны бесплатно. Донаты помогают развивать проект и
+            добавлять новые русификаторы.
           </DialogDescription>
         </DialogHeader>
 
@@ -61,8 +74,8 @@ export default function DonationDialog({ open, onOpenChange, onSuccess }: Donati
                 <p className="text-sm text-muted-foreground mb-3">
                   Стабильная платформа для донатов с удобными способами оплаты
                 </p>
-                <Button 
-                  onClick={handleBoostyRedirect} 
+                <Button
+                  onClick={handleBoostyRedirect}
                   className="w-full bg-orange-500 hover:bg-orange-600"
                 >
                   <Icon name="ExternalLink" size={16} />
