@@ -100,3 +100,16 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+html, body {
+  height: 100%;
+  min-height: 100vh;
+  width: 100%;
+}
+
+body {
+  @apply bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white;
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  overflow-x: hidden;
+}
